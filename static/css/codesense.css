@@ -1,0 +1,265 @@
+/* Fonts are vendored (static/fonts) so the app looks the same offline. */
+@font-face {
+    font-family: "Fraunces";
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url("../fonts/fraunces-600.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Source Sans 3";
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    src: url("../fonts/source-sans-3-400.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Source Sans 3";
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+    src: url("../fonts/source-sans-3-600.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Source Code Pro";
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    src: url("../fonts/source-code-pro-400.woff2") format("woff2");
+}
+
+:root {
+    --ink: #1b2430;
+    --muted: #5c6570;
+    --paper: #f3eee4;
+    --card: #fffdf8;
+    --rule: #ddd4c6;
+    --terracotta: #c45c26;
+    --teal: #1c6b66;
+    --forest: #2f5d3a;
+    --rose: #8a3a3a;
+    --header: #14202b;
+}
+
+html,
+body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 1.05rem;
+}
+
+h1, h2, h3, .brand-name, .display {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+}
+
+a {
+    color: var(--teal);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.site-header {
+    background: var(--header);
+    color: #f6f1e8;
+}
+
+.brand {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+}
+
+.brand-mark {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.6rem;
+    display: grid;
+    place-items: center;
+    background: var(--terracotta);
+    font-family: Fraunces, serif;
+    font-weight: 650;
+}
+
+.brand-name {
+    display: block;
+    line-height: 1.1;
+}
+
+.brand-tag {
+    display: block;
+    font-size: 0.78rem;
+    color: #c9d0d6;
+    letter-spacing: 0.04em;
+}
+
+.site-nav a {
+    color: #f6f1e8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.progress-pill {
+    border: 1px solid #3a4754;
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-size: 0.85rem;
+    color: #d5dde4;
+}
+
+.site-footer {
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.muted { color: var(--muted); }
+
+.hero {
+    max-width: 42rem;
+}
+
+.kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--terracotta);
+}
+
+.card-quiet {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 1rem;
+    box-shadow: 0 1px 0 rgba(27, 36, 48, 0.04);
+}
+
+.card-quiet .card-body {
+    padding: 1.25rem 1.35rem;
+}
+
+.chip {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: #ece4d6;
+    color: var(--ink);
+}
+
+.chip-read { background: #dceae8; color: var(--teal); }
+.chip-judge { background: #f7e3d6; color: var(--terracotta); }
+.chip-shape { background: #dde7d8; color: var(--forest); }
+.chip-bloom { background: #e7e1f2; color: #4c3d72; }
+.chip-missing { background: #f3e9d9; color: #7a5a1f; }
+
+.code-panel {
+    background: #172029;
+    color: #e8eef3;
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    overflow: auto;
+}
+
+.code-panel pre {
+    margin: 0;
+    font-family: "Source Code Pro", ui-monospace, monospace;
+    font-size: 0.95rem;
+    white-space: pre;
+}
+
+.suggestion {
+    border-left: 4px solid var(--terracotta);
+    background: #fff4ec;
+    padding: 0.85rem 1rem;
+    border-radius: 0 0.8rem 0.8rem 0;
+}
+
+.requirements {
+    background: #eef5f4;
+    border-radius: 0.8rem;
+    padding: 0.9rem 1rem;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--teal);
+    --bs-btn-border-color: var(--teal);
+    --bs-btn-hover-bg: #155751;
+    --bs-btn-hover-border-color: #155751;
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--rule);
+    --bs-btn-hover-bg: #ece6da;
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-border-color: var(--rule);
+}
+
+.choice {
+    border: 1px solid var(--rule);
+    border-radius: 0.8rem;
+    padding: 0.7rem 0.9rem;
+    background: #fff;
+}
+
+.choice:has(input:checked) {
+    border-color: var(--teal);
+    background: #eef6f5;
+}
+
+.match-definitions {
+    padding-left: 1.6rem;
+}
+
+.match-definitions li {
+    margin-bottom: 0.4rem;
+}
+
+.match-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 0.8rem;
+    padding: 0.5rem 0.9rem;
+    background: #fff;
+}
+
+.match-term {
+    flex: 1 1 auto;
+    margin: 0;
+}
+
+.match-select {
+    flex: 0 0 8.5rem;
+}
+
+.feedback-yes {
+    background: #e7f3ea;
+    border-color: #b7d8bf;
+}
+
+.feedback-no {
+    background: #f8eaea;
+    border-color: #e0b8b8;
+}
+
+.feedback-formative {
+    background: #eef3f8;
+    border-color: #c5d3e0;
+}
+
+.skip-link:focus {
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    background: #fff;
+    padding: 0.4rem 0.7rem;
+    z-index: 10;
+}

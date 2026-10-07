@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}CodeSense · Studio{% endblock %}
+{% block content %}
+<section class="hero mb-5">
+    <p class="kicker mb-2">Dissertation prototype</p>
+    <h1 class="display mb-3">Introductory programming when generated code is cheap.</h1>
+    <p class="lead">
+        CodeSense is not a place to practise talking to a chatbot.
+        It is a studio of many small problems for reading code, judging
+        suggestions, and stating requirements — while keeping hold of
+        variables, decisions, loops, functions, lists, and dictionaries.
+    </p>
+    <a class="btn btn-primary btn-lg me-2" href="{% url 'practice:topics' %}">Choose a topic</a>
+    <span class="muted">{{ done }} of {{ total_activities }} activities attempted in this browser.</span>
+</section>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <span class="chip chip-read mb-2">Read</span>
+                <h2 class="h4">Mental models first</h2>
+                <p class="mb-0">Explain, trace, and name purpose. Writing from a blank file is not the default move.</p>
+            </div>
+        </article>
+    </div>
+    <div class="col-md-4">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <span class="chip chip-judge mb-2">Judge</span>
+                <h2 class="h4">AI as an object of critique</h2>
+                <p class="mb-0">Accept or reject a suggestion. Find the bug. The tutor never finishes the item for you.</p>
+            </div>
+        </article>
+    </div>
+    <div class="col-md-4">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <span class="chip chip-shape mb-2">Shape</span>
+                <h2 class="h4">Improve and specify</h2>
+                <p class="mb-0">Rewrite weak generated code, and practise saying what a solution must do — including edge cases.</p>
+            </div>
+        </article>
+    </div>
+</div>
+
+<h2 class="h3 mb-3">Activity types</h2>
+<p class="muted mb-4">Each type is short, single-concept, and mapped to a Bloom-inspired outcome.</p>
+<div class="row g-3 mb-5">
+    {% for qt in question_types %}
+    <div class="col-md-6 col-lg-4">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-2 mb-2">
+                    <span class="chip chip-{{ qt.stance }}">{{ qt.get_stance_display }}</span>
+                    <span class="chip chip-bloom">L{{ qt.bloom_level }} {{ qt.bloom_label }}</span>
+                </div>
+                <h3 class="h5">{{ qt.name }}</h3>
+                <p class="mb-2">{{ qt.short_description }}</p>
+                <p class="muted small mb-0">{{ qt.pedagogical_aim }}</p>
+            </div>
+        </article>
+    </div>
+    {% endfor %}
+</div>
+
+<h2 class="h3 mb-3">Topics</h2>
+<div class="row g-3">
+    {% for topic in topics %}
+    <div class="col-md-6 col-lg-4">
+        <a class="text-decoration-none" href="{{ topic.get_absolute_url }}">
+            <article class="card card-quiet h-100">
+                <div class="card-body">
+                    <h3 class="h5 text-dark">{{ topic.name }}</h3>
+                    <p class="text-dark mb-2">{{ topic.summary }}</p>
+                    <p class="muted small mb-0">{{ topic.activities.all|length }} short activities</p>
+                </div>
+            </article>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Feedback · {{ activity.title }}{% endblock %}
+{% block content %}
+<p class="kicker mb-2">
+    <a href="{{ activity.topic.get_absolute_url }}">{{ activity.topic.name }}</a>
+    · feedback
+</p>
+<h1 class="h2 mb-3">{{ activity.title }}</h1>
+
+{% if assessment.match_results %}
+<div class="card card-quiet {% if assessment.is_correct %}feedback-yes{% else %}feedback-no{% endif %} mb-4">
+    <div class="card-body">
+        <strong>{{ matched_count }} of {{ assessment.match_results|length }} pairs matched.</strong>
+        <p class="mb-0 mt-2">Check each row below. A miss tells you which term to revisit; the score matters less than that.</p>
+    </div>
+</div>
+{% elif assessment.is_correct is True %}
+<div class="card card-quiet feedback-yes mb-4">
+    <div class="card-body">
+        <strong>That matches the expert reading.</strong>
+        <p class="mb-0 mt-2">Use the explanation below to check that you can say why, not only that you chose well.</p>
+    </div>
+</div>
+{% elif assessment.is_correct is False %}
+<div class="card card-quiet feedback-no mb-4">
+    <div class="card-body">
+        <strong>This diverges from the expert reading.</strong>
+        <p class="mb-0 mt-2">That is useful. Compare your reasoning with the designed explanation. The concept is the point, not the score.</p>
+    </div>
+</div>
+{% else %}
+<div class="card card-quiet feedback-formative mb-4">
+    <div class="card-body">
+        <strong>Formative check, not a grade.</strong>
+        <p class="mb-0 mt-2">Open answers are compared with the ideas this activity targets, shown below.</p>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <h2 class="h5">Your response</h2>
+                {% if assessment.match_results %}
+                <ul class="list-unstyled mb-0 match-feedback">
+                    {% for r in assessment.match_results %}
+                    <li class="mb-3">
+                        <code>{{ r.term }}</code>
+                        {% if r.ok %}<span class="chip chip-shape">&#10003; correct</span>{% else %}<span class="chip chip-missing">not yet</span>{% endif %}
+                        <div class="small">You chose: {% if r.chosen %}{{ r.chosen }}{% else %}<em>nothing</em>{% endif %}</div>
+                        {% if not r.ok %}<div class="small"><strong>Fits:</strong> {{ r.correct }}</div>{% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% elif response.ai_decision %}
+                    <p><strong>Decision:</strong> {{ response.ai_decision }}</p>
+                    <p class="mb-0" style="white-space: pre-wrap;">{{ response.reasoning }}</p>
+                {% elif selected_label %}
+                    <p class="mb-0">{{ selected_label }}</p>
+                {% else %}
+                    <p class="mb-0" style="white-space: pre-wrap;">{{ response.free_text }}</p>
+                {% endif %}
+            </div>
+        </article>
+    </div>
+    <div class="col-lg-6">
+        <article class="card card-quiet h-100">
+            <div class="card-body">
+                <h2 class="h5">Expert explanation</h2>
+                <p>{{ activity.model_explanation }}</p>
+                <p class="muted small mb-0"><strong>Success criteria:</strong> {{ activity.success_criteria }}</p>
+            </div>
+        </article>
+    </div>
+</div>
+
+{% if has_concepts %}
+<article class="card card-quiet mt-4">
+    <div class="card-body">
+        <h2 class="h5">Ideas your answer showed</h2>
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            {% for name in assessment.concepts_found %}
+            <span class="chip chip-shape">&#10003; {{ name }}</span>
+            {% endfor %}
+            {% for name in assessment.concepts_missing %}
+            <span class="chip chip-missing">Not yet: {{ name }}</span>
+            {% endfor %}
+        </div>
+        {% if score_percent is not None %}
+        <p class="muted small mb-0">{{ score_percent }}% of the target ideas appeared. This is a formative signal and can miss correct ideas expressed in unexpected words.</p>
+        {% endif %}
+    </div>
+</article>
+{% endif %}
+
+<article class="card card-quiet mt-4">
+    <div class="card-body">
+        <h2 class="h5">Tutor feedback</h2>
+        <p class="muted small">Mocked AI scaffolding: the same interface a later LLM adapter would implement. It comments; it does not replace your answer.</p>
+        <p>{{ assessment.feedback }}</p>
+        <h3 class="h6 mt-4">Another way to read it</h3>
+        <p>{{ extra_explanation }}</p>
+        <h3 class="h6">Nearby example</h3>
+        <p class="mb-0">{{ extra_example }}</p>
+    </div>
+</article>
+
+{% if activity.misconceptions %}
+<article class="card card-quiet mt-4">
+    <div class="card-body">
+        <h2 class="h5">Misconceptions this item is built around</h2>
+        <ul class="mb-0">
+            {% for item in activity.misconceptions %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</article>
+{% endif %}
+
+<article class="card card-quiet mt-4 mb-4">
+    <div class="card-body">
+        <h2 class="h5">Targeted follow-up</h2>
+        <p class="mb-0">{{ follow_up }}</p>
+    </div>
+</article>
+
+<div class="d-flex flex-wrap gap-2">
+    {% if next_item %}
+    <a class="btn btn-primary" href="{{ next_item.get_absolute_url }}">Next in {{ activity.topic.name }}</a>
+    {% endif %}
+    <a class="btn btn-outline-secondary" href="{{ activity.topic.get_absolute_url }}">Back to topic</a>
+    <a class="btn btn-outline-secondary" href="{% url 'practice:topics' %}">All topics</a>
+</div>
+{% endblock %}

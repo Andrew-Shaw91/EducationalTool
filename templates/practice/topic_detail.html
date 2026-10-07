@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.name }} · CodeSense{% endblock %}
+{% block content %}
+<p class="kicker mb-2"><a href="{% url 'practice:topics' %}">Topics</a> / {{ topic.name }}</p>
+<h1 class="mb-3">{{ topic.name }}</h1>
+<p class="lead">{{ topic.summary }}</p>
+<p class="muted mb-4">{{ topic.why_it_matters }}</p>
+
+<div class="row g-3">
+    {% for activity in topic.activities.all %}
+    <div class="col-lg-6">
+        <article class="card card-quiet h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <span class="chip chip-{{ activity.question_type.stance }}">{{ activity.question_type.name }}</span>
+                    <span class="chip chip-bloom">L{{ activity.bloom_level }} {{ activity.bloom_label }}</span>
+                    <span class="chip">~{{ activity.estimated_minutes }} min</span>
+                    {% if activity.id in completed %}
+                    <span class="chip chip-shape">Attempted</span>
+                    {% endif %}
+                </div>
+                <h2 class="h5">{{ activity.title }}</h2>
+                <p class="muted">{{ activity.stem|truncatewords:22 }}</p>
+                <a class="btn btn-primary mt-auto align-self-start" href="{{ activity.get_absolute_url }}">Start activity</a>
+            </div>
+        </article>
+    </div>
+    {% empty %}
+    <p>No activities in this topic yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

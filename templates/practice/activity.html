@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ activity.title }} · CodeSense{% endblock %}
+{% block content %}
+<p class="kicker mb-2">
+    <a href="{{ activity.topic.get_absolute_url }}">{{ activity.topic.name }}</a>
+    · {{ activity.question_type.name }}
+</p>
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="chip chip-{{ activity.question_type.stance }}">{{ activity.question_type.get_stance_display }}</span>
+    <span class="chip chip-bloom">L{{ activity.bloom_level }} {{ activity.bloom_label }}</span>
+    <span class="chip">~{{ activity.estimated_minutes }} min</span>
+</div>
+<h1 class="h2 mb-3">{{ activity.title }}</h1>
+<p class="lead">{{ activity.stem }}</p>
+
+{% if activity.requirements_text %}
+<div class="requirements mb-4">
+    <strong>Requirements to communicate</strong>
+    <p class="mb-0 mt-2">{{ activity.requirements_text }}</p>
+</div>
+{% endif %}
+
+{% if activity.code_snippet %}
+<div class="code-panel mb-4">
+    <pre>{{ activity.code_snippet }}</pre>
+</div>
+{% endif %}
+
+{% if activity.ai_suggestion %}
+<div class="suggestion mb-4">
+    <strong>AI suggestion</strong>
+    <pre class="mb-0 mt-2">{{ activity.ai_suggestion }}</pre>
+</div>
+{% endif %}
+
+{% if hint %}
+<div class="alert alert-light border mb-4">
+    <strong>Tutor hint</strong> — scaffolding only, not the answer.
+    <p class="mb-0 mt-2">{{ hint }}</p>
+</div>
+{% endif %}
+
+<form method="post" class="card card-quiet mb-3">
+    {% csrf_token %}
+    <div class="card-body">
+        {% if activity.is_ai_evaluation %}
+            <p class="fw-semibold">Your decision</p>
+            <div class="d-flex flex-column gap-2 mb-3">
+                <label class="choice">
+                    <input type="radio" name="ai_decision" value="accept" required
+                           {% if posted.ai_decision == "accept" %}checked{% endif %}>
+                    Accept the suggestion
+                </label>
+                <label class="choice">
+                    <input type="radio" name="ai_decision" value="reject" required
+                           {% if posted.ai_decision == "reject" %}checked{% endif %}>
+                    Reject the suggestion
+                </label>
+            </div>
+            <label class="form-label fw-semibold" for="reasoning">Why?</label>
+            <textarea class="form-control" id="reasoning" name="reasoning" rows="5" required
+                      placeholder="Say what the line would do, and whether that matches the requirement.">{{ posted.reasoning }}</textarea>
+
+        {% elif activity.is_matching %}
+            <p class="fw-semibold">Definitions</p>
+            <ol class="match-definitions mb-4" type="A">
+                {% for option in activity.match_options %}
+                <li>{{ option.text }}</li>
+                {% endfor %}
+            </ol>
+            <p class="fw-semibold">Choose the definition for each term</p>
+            <div class="d-flex flex-column gap-2">
+                {% for row in match_rows %}
+                <div class="match-row">
+                    <label class="match-term" for="match_{{ row.index }}"><code>{{ row.term }}</code></label>
+                    <select class="form-select match-select" id="match_{{ row.index }}"
+                            name="match_{{ row.index }}" required>
+                        <option value="" disabled {% if not row.selected %}selected{% endif %}>Choose&hellip;</option>
+                        {% for option in activity.match_options %}
+                        <option value="{{ option.key }}" {% if row.selected == option.key %}selected{% endif %}>{{ option.key|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="muted small mt-3 mb-0">Each definition fits at most one term{% if activity.match_distractors %}, and at least one definition fits none{% endif %}.</p>
+
+        {% elif activity.is_choice_based %}
+            <p class="fw-semibold">Choose one</p>
+            <div class="d-flex flex-column gap-2">
+                {% for choice in activity.choices %}
+                <label class="choice">
+                    <input type="radio" name="choice" value="{{ choice.key }}" required
+                           {% if posted.choice == choice.key %}checked{% endif %}>
+                    {{ choice.text }}
+                </label>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <label class="form-label fw-semibold" for="free_text">Your response</label>
+            <textarea class="form-control" id="free_text" name="free_text" rows="7" required
+                      placeholder="Write in sentences. Name the concept, then the behaviour.">{{ posted.free_text }}</textarea>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            <button class="btn btn-primary" type="submit" name="action" value="submit">Check my thinking</button>
+            <button class="btn btn-outline-secondary" type="submit" name="action" value="hint" formnovalidate>I need a hint</button>
+        </div>
+    </div>
+</form>
+
+<details class="muted small">
+    <summary>Why this activity is designed this way</summary>
+    <p class="mt-2 mb-1">{{ activity.question_type.pedagogical_aim }}</p>
+    <p class="mb-0"><strong>AI’s role here:</strong> {{ activity.question_type.ai_role }}</p>
+</details>
+{% endblock %}

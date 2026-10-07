@@ -1,0 +1,50 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}CodeSense{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/codesense.css' %}">
+</head>
+<body>
+    <a class="visually-hidden-focusable skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between gap-3 py-3">
+            <a class="brand" href="{% url 'practice:home' %}">
+                <span class="brand-mark">CS</span>
+                <span>
+                    <span class="brand-name">CodeSense</span>
+                    <span class="brand-tag">Read · Judge · Shape</span>
+                </span>
+            </a>
+            <nav class="site-nav d-flex gap-3">
+                <a href="{% url 'practice:home' %}">Studio</a>
+                <a href="{% url 'practice:topics' %}">Topics</a>
+            </nav>
+            <div class="progress-pill">{{ completed_count }} practised</div>
+        </div>
+    </header>
+
+    <main id="main" class="py-4 py-md-5">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container py-4">
+            <p class="mb-1">Research prototype for introductory programming in a generative-AI-rich classroom.</p>
+            <p class="mb-1 muted">AI never completes the activity for you. Hints, explanations, and follow-ups are scaffolding.</p>
+            <p class="mb-0 muted">
+                {% if analytics_enabled %}
+                Research mode: your answers are recorded under a random anonymous code. No names, accounts or personal details are collected.
+                {% else %}
+                Analytics are off: nothing you answer is recorded.
+                {% endif %}
+            </p>
+        </div>
+    </footer>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
