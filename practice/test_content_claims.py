@@ -212,3 +212,18 @@ class ModelAnswerClaimTests(SimpleTestCase):
             ["7", "0"],
         )
         self.raises("print(sum({'apples': 5, 'pears': 2}))", TypeError)
+
+
+class BlockLevelActivityClaimTests(SimpleTestCase):
+    """Claims made by the explain-code items added with the Block Model."""
+
+    def test_function_area_example(self):
+        code = "def area(width, height):\n    return width * height\n\nprint(area(3, 4))\nprint(area(5, 2))"
+        self.assertEqual(run(code)[0], ["12", "10"])
+
+    def test_dictionary_update_example(self):
+        code = 'ages = {"Ada": 36, "Alan": 41}\nages["Ada"] = 37\nprint(ages["Ada"])\nprint(len(ages))'
+        self.assertEqual(run(code)[0], ["37", "2"])
+        # Follow-up: a new key adds an entry.
+        followup = 'ages = {"Ada": 36, "Alan": 41}\nages["Grace"] = 37\nprint(len(ages))'
+        self.assertEqual(run(followup)[0], ["3"])

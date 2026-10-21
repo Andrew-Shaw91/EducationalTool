@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CodeSense: design overview</title>
+<style>
+  @page { size: A4; margin: 10mm 12mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 8.5pt;
+    line-height: 1.3;
+    color: #1b2530;
+    margin: 0;
+  }
+  h1 { font-size: 18pt; margin: 0 0 1mm; color: #172029; }
+  .sub { color: #5a6570; margin: 0 0 3mm; font-size: 9pt; }
+  h2 {
+    font-size: 10pt; margin: 2.4mm 0 0.8mm; color: #1d6f6a;
+    border-bottom: 0.4mm solid #d9cfbd; padding-bottom: 0.6mm;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  p { margin: 0 0 1.4mm; }
+  ul { margin: 0 0 1.4mm; padding-left: 4.2mm; }
+  li { margin-bottom: 0.7mm; }
+  .cols { display: flex; gap: 5mm; }
+  .cols > div { flex: 1; }
+  table { border-collapse: collapse; width: 100%; margin: 1mm 0 1.4mm; }
+  th, td { border: 0.25mm solid #cfc6b4; padding: 0.8mm 1.6mm; text-align: left; vertical-align: top; }
+  th { background: #f1ebde; font-size: 8.5pt; }
+  td.n { text-align: center; }
+  .note { background: #f6f2e8; border-left: 0.9mm solid #c9622a; padding: 1.4mm 2.4mm; margin: 1.6mm 0; }
+  .foot { margin-top: 3mm; color: #6b7480; font-size: 8pt; }
+  code { font-family: Consolas, monospace; font-size: 8.5pt; background: #efe9dc; padding: 0 0.8mm; border-radius: 0.6mm; }
+</style>
+</head>
+<body>
+
+<h1>CodeSense</h1>
+<p class="sub">A research prototype for learning to <em>read, judge and shape</em> code in a generative-AI-rich classroom &middot; Computing Science dissertation project &middot; Django &middot; offline</p>
+
+<h2>Purpose</h2>
+<p>Introductory programming students now receive code from AI tools at least as often as they write it. CodeSense is a small web app for studying how to teach the skills that matter in that setting: understanding what code does, finding why it fails, and deciding whether generated code can be trusted. It is a research instrument, not a general practice site: educational design and evaluation come before engineering complexity.</p>
+
+<h2>What a student does</h2>
+<p>Students pick one of six topics (Variables, Conditionals, Loops, Functions, Lists, Dictionaries) and work through short activities. There are no accounts. Each activity shows a small piece of code and one question; the student can ask for a hint, then submit and receive feedback with an expert explanation, the misconceptions the item targets, and a follow-up idea. The app has <strong>48 activities</strong> across <strong>16 activity types</strong>.</p>
+
+<h2>Educational framework (three layers, each additive)</h2>
+<ul>
+  <li><strong>Many Small Problems.</strong> One concept per item, short and low-pressure, with quick feedback.</li>
+  <li><strong>Bloom-inspired outcomes (L1&ndash;L6).</strong> Every topic has activities at every level, and each level is a different cognitive task rather than a harder version of the same question: recall vocabulary, trace code, complete or modify code, analyse faults, extend or improve code, evaluate code (including AI output).</li>
+  <li><strong>Block Model of Program Comprehension.</strong> Each activity is also tagged with the <em>grain</em> of program it concerns: Atoms (syntax elements), Blocks (a loop, conditional or function), Relations (data and control flow), Macro Structure (the program's purpose). Bloom says how demanding a task is; the Block Model says what it is about. This is metadata only and does not gate progress.</li>
+</ul>
+<table>
+  <tr><th>Bloom \ Block</th><th>Atoms</th><th>Blocks</th><th>Relations</th><th>Macro</th><th>Typical activity types</th></tr>
+  <tr><td>L1 Knowledge</td><td class="n">15</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td>Identify terminology, define a concept, match terms to definitions</td></tr>
+  <tr><td>L2 Comprehension</td><td class="n">&ndash;</td><td class="n">4</td><td class="n">3</td><td class="n">2</td><td>Explain code, trace, program purpose</td></tr>
+  <tr><td>L3 Application</td><td class="n">1</td><td class="n">4</td><td class="n">&ndash;</td><td class="n">1</td><td>Complete the code, modify the code, prompt construction</td></tr>
+  <tr><td>L4 Analysis</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">6</td><td class="n">&ndash;</td><td>Debug, compare solutions, analyse a misconception</td></tr>
+  <tr><td>L5 Synthesis</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">6</td><td>Extend the code, improve / refactor</td></tr>
+  <tr><td>L6 Evaluation</td><td class="n">&ndash;</td><td class="n">&ndash;</td><td class="n">3</td><td class="n">3</td><td>Judge an AI suggestion, review code quality</td></tr>
+</table>
+<p>Reading, tracing, debugging and judging make up about four fifths of the activities; writing tasks are the minority, and even those accept a description in words as well as code.</p>
+
+<div class="cols">
+<div>
+<h2>Role of AI</h2>
+<p>AI scaffolds and never solves the activity. It supplies hints, alternative explanations and follow-ups, and a set of activities asks students to <em>accept or reject</em> AI-generated code with reasons (some are correct, so rejecting everything does not pay). Options are built from documented novice misconceptions rather than random wrong answers. AI sits behind an abstraction (<code>AIService</code>) with a deterministic mock, so no API key is needed.</p>
+
+<h2>Feedback and assessment</h2>
+<ul>
+  <li>Multiple choice, matching (scored per pair) and accept/reject are checked deterministically.</li>
+  <li>Open answers are <strong>formative, never graded</strong>: a pluggable <code>FeedbackService</code> returns the ideas found and missing, a score and feedback text.</li>
+  <li>The default assessor matches keywords (transparent and free). An AI-enhanced assessor returns the same result shape and, without a key, uses a mocked response; bad model output falls back to keywords.</li>
+</ul>
+</div>
+<div>
+<h2>Research data and privacy</h2>
+<ul>
+  <li>Participants are random codes (e.g. <code>P-3F9A12C4</code>). No names, emails, IP addresses, user agents or session keys are stored.</li>
+  <li>Activity data (the <code>practice</code> app) is kept apart from evaluation data (the <code>research</code> app), so either can be exported, anonymised or deleted separately.</li>
+  <li>Analytics, answer-text storage, hint counts and timestamps can each be switched off in settings; the app works identically when analytics are off.</li>
+  <li>Attempts export to CSV with topic, activity type, Bloom and Block level, correctness, score and concepts found or missing.</li>
+</ul>
+
+<h2>Technology</h2>
+<p>Django 5.2, SQLite and Django templates; Bootstrap, fonts and CSS are bundled locally, so it runs fully offline. No React, no single-page app, no authentication. 99 automated tests cover content and behaviour; model-answer claims about code output are verified by running the code.</p>
+</div>
+</div>
+
+<div class="note"><strong>Limitations.</strong> Activities and Block Model tags are the author's judgement, not yet validated with students or a second rater. Keyword assessment is coarse for code answers, and no AI assessor has been compared with human ratings (see <code>design_notes.md</code>).</div>
+
+<p class="foot">Further detail: <code>design_notes.md</code> (design rationale, ethics, future work) and <code>README.md</code> (setup and configuration).</p>
+
+</body>
+</html>

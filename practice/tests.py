@@ -586,3 +586,121 @@ class MatchingTests(SeededTestCase):
         )
         self.assertContains(response, "Tutor hint")
         self.assertContains(response, f'value="{keys[0]}" selected')
+
+
+class BlockModelTests(SeededTestCase):
+    """Block Model metadata: every activity tagged, coverage, mapping and display."""
+
+    TYPE_LEVELS = {
+        "terminology": "Atoms",
+        "define-concept": "Atoms",
+        "match-terms": "Atoms",
+        "explain-code": "Blocks",
+        "tracing": "Relations",
+        "debugging": "Relations",
+        "purpose": "Macro Structure",
+        "code-improvement": "Macro Structure",
+        "prompt-construction": "Macro Structure",
+    }
+
+    def test_every_activity_has_a_valid_block_level(self):
+        from practice.models import BlockLevel
+
+        for a in Activity.objects.all():
+            self.assertIn(a.block_level, BlockLevel.values, a.title)
+        self.assertEqual(
+            [label for _, label in BlockLevel.choices],
+            ["Atoms", "Blocks", "Relations", "Macro Structure"],
+        )
+
+    def test_every_topic_covers_all_four_block_levels(self):
+        from practice.models import Topic
+
+        for topic in Topic.objects.all():
+            levels = set(topic.activities.values_list("block_level", flat=True))
+            self.assertEqual(levels, {1, 2, 3, 4}, f"{topic.name}: {sorted(levels)}")
+
+    def test_fixed_activity_types_map_to_their_block_level(self):
+        for slug, label in self.TYPE_LEVELS.items():
+            items = Activity.objects.filter(question_type__slug=slug)
+            self.assertTrue(items.exists(), slug)
+            for a in items:
+                self.assertEqual(a.block_label, label, f"{slug}: {a.title}")
+
+    def test_mixed_types_use_relations_or_macro_structure(self):
+        for slug in ("misconception-analysis", "ai-suggestion", "compare-solutions",
+                     "code-quality-review", "extend-code"):
+            for a in Activity.objects.filter(question_type__slug=slug):
+                self.assertIn(a.block_label, {"Relations", "Macro Structure"}, a.title)
+        used = {a.block_label for a in Activity.objects.filter(question_type__slug="ai-suggestion")}
+        self.assertEqual(used, {"Relations", "Macro Structure"})
+
+    def test_bloom_and_block_levels_are_consistent(self):
+        """Recall is about atoms; evaluation is about relations or the whole program."""
+        for a in Activity.objects.filter(bloom_level=1):
+            self.assertEqual(a.block_label, "Atoms", a.title)
+        for a in Activity.objects.filter(block_level=1):
+            self.assertLessEqual(a.bloom_level, 3, a.title)
+        for a in Activity.objects.filter(bloom_level=6):
+            self.assertIn(a.block_label, {"Relations", "Macro Structure"}, a.title)
+
+    def test_topic_progression_runs_atoms_to_macro(self):
+        from practice.models import BlockLevel, Topic
+
+        for topic in Topic.objects.all():
+            groups = topic.block_progression()
+            self.assertEqual([lvl for lvl, _ in groups], list(BlockLevel))
+            self.assertEqual(
+                sum(len(items) for _, items in groups), topic.activities.count()
+            )
+            for level, items in groups:
+                self.assertTrue(all(a.block_level == level for a in items))
+
+    def test_badge_and_why_section_on_activity_page(self):
+        for a in Activity.objects.all():
+            html = self.client.get(a.get_absolute_url()).content.decode()
+            self.assertIn("chip-block", html, a.title)
+            self.assertIn(a.block_label, html, a.title)
+            self.assertIn("Why this activity was chosen", html, a.title)
+            self.assertIn(a.block_description, html, a.title)
+
+    def test_misconceptions_are_not_revealed_before_answering(self):
+        from django.utils.html import escape
+
+        for a in Activity.objects.all():
+            html = self.client.get(a.get_absolute_url()).content.decode()
+            for m in a.misconceptions:
+                self.assertNotIn(escape(m), html, a.title)
+
+    def test_feedback_page_shows_badge_and_misconception(self):
+        a = self.by_title("Which branch runs")
+        response = self.client.post(a.get_absolute_url(), {"choice": a.correct_choice})
+        self.assertContains(response, "chip-block")
+        self.assertContains(response, "Why this activity was chosen")
+        self.assertContains(response, "Relations")
+
+    def test_topic_page_shows_block_badges(self):
+        from practice.models import Topic
+
+        topic = Topic.objects.get(slug="loops")
+        html = self.client.get(topic.get_absolute_url()).content.decode()
+        self.assertEqual(html.count("chip-block"), topic.activities.count())
+
+    def test_seed_refuses_an_untagged_activity(self):
+        from unittest import mock
+
+        from django.core.management.base import CommandError
+
+        from practice.management.commands import seed_activities
+
+        untagged = [{k: v for k, v in dict(a).items() if k != "block_level"}
+                    for a in seed_activities.ACTIVITIES[:1]]
+        with mock.patch.object(seed_activities, "ACTIVITIES", untagged):
+            with self.assertRaises(CommandError):
+                call_command("seed_activities", verbosity=0)
+
+    def test_new_block_level_activities_have_concepts(self):
+        for title in ("take in and give back", "dictionary update do"):
+            a = self.by_title(title)
+            self.assertEqual(a.block_label, "Blocks")
+            self.assertEqual(len(a.expected_concepts), 3)

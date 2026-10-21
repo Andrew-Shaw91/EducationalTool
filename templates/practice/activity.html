@@ -8,6 +8,7 @@
 <div class="d-flex flex-wrap gap-2 mb-3">
     <span class="chip chip-{{ activity.question_type.stance }}">{{ activity.question_type.get_stance_display }}</span>
     <span class="chip chip-bloom">L{{ activity.bloom_level }} {{ activity.bloom_label }}</span>
+    <span class="chip chip-block">{{ activity.block_label }}</span>
     <span class="chip">~{{ activity.estimated_minutes }} min</span>
 </div>
 <h1 class="h2 mb-3">{{ activity.title }}</h1>
@@ -111,8 +112,13 @@
 </form>
 
 <details class="muted small">
-    <summary>Why this activity is designed this way</summary>
-    <p class="mt-2 mb-1">{{ activity.question_type.pedagogical_aim }}</p>
+    <summary>Why this activity was chosen</summary>
+    <ul class="mt-2 mb-2 ps-3">
+        <li><strong>Bloom level:</strong> L{{ activity.bloom_level }} {{ activity.bloom_label }}: {{ activity.question_type.short_description }}</li>
+        <li><strong>Block Model level:</strong> {{ activity.block_label }} ({{ activity.block_progression_text }}): {{ activity.block_description }}</li>
+        <li><strong>Misconception targeted:</strong> shown after you answer, so it does not give the answer away.</li>
+    </ul>
+    <p class="mb-1">{{ activity.question_type.pedagogical_aim }}</p>
     <p class="mb-0"><strong>AI’s role here:</strong> {{ activity.question_type.ai_role }}</p>
 </details>
 {% endblock %}

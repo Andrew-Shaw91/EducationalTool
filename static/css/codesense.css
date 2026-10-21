@@ -156,6 +156,7 @@ a {
 .chip-judge { background: #f7e3d6; color: var(--terracotta); }
 .chip-shape { background: #dde7d8; color: var(--forest); }
 .chip-bloom { background: #e7e1f2; color: #4c3d72; }
+.chip-block { background: #dde6f0; color: #2f4a6b; }
 .chip-missing { background: #f3e9d9; color: #7a5a1f; }
 
 .code-panel {

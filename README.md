@@ -35,13 +35,22 @@ Activities live in `practice/management/commands/seed_activities.py`; re-run `py
 - Write the correct option anywhere; the loader repositions it. Don't refer to options by letter in explanations.
 - If an explanation claims what code outputs, add or update the matching case in `practice/test_content_claims.py`, which runs the code.
 - Free-text items need `expected_concepts` (name, description, keywords).
+- Every activity needs a `block_level` (`BlockLevel.ATOMS`, `BLOCKS`, `RELATIONS` or `MACRO`); the loader refuses an untagged one. The assignment rules are in `design_notes.md` (section 0a), and tests check them.
 
 ## Configuration
 
-All options are in `codesense/settings.py` and can be overridden with environment variables.
+All options are in `codesense/settings.py` and can be overridden with environment variables, or with a `.env` file next to `manage.py` (copy `.env.example`; real environment variables win). With nothing set you get a working local development setup.
 
 | Setting | Env var | Default | Effect |
 |---------|---------|---------|--------|
+| `DEBUG` | `DEBUG` | on | Set `False` on a server; the app then refuses to start without a real `SECRET_KEY` |
+| `SECRET_KEY` | `SECRET_KEY` | development-only key | Required when `DEBUG` is off |
+| `ALLOWED_HOSTS` | `ALLOWED_HOSTS` | `127.0.0.1,localhost` | Comma-separated hosts/IPs the site may be served under |
+| `CSRF_TRUSTED_ORIGINS` | `CSRF_TRUSTED_ORIGINS` | none | Full origins (`https://example.org`), needed with a domain and HTTPS |
+| database file | `DATABASE_PATH` | `db.sqlite3` in the project | Lets a server keep the database outside the code folder |
+| secure cookies, HTTPS redirect | `USE_HTTPS` | off | Turn on only once the site is served over HTTPS |
+| `SECURE_HSTS_SECONDS` | `SECURE_HSTS_SECONDS` | `0` | Optional HSTS lifetime, used only with `USE_HTTPS` |
+| log level | `LOG_LEVEL` | `DEBUG` (dev) / `INFO` | Logs go to the console and `logs/codesense.log` |
 | `FEEDBACK_SERVICE` | `CODESENSE_FEEDBACK_SERVICE` | `keyword` | `keyword` or `ai` |
 | `LLM_API_KEY` | `CODESENSE_LLM_API_KEY` | empty | With `ai` and no key, a labelled mock reply is used |
 | `RESEARCH["ANALYTICS_ENABLED"]` | `CODESENSE_ANALYTICS` | on | Off = nothing is recorded at all |
@@ -63,4 +72,4 @@ Evaluation data is also viewable (read-only) in the admin: `python manage.py cre
 
 ## Deploying beyond `runserver`
 
-Set `DEBUG = False`, a real `SECRET_KEY` and `ALLOWED_HOSTS`, run `python manage.py collectstatic`, and serve `staticfiles/` with the web server.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for a step-by-step guide to an Ubuntu 24.04 VM (nginx, gunicorn, systemd, UFW, backups) and [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for a repeatable checklist. Ready-to-use configuration is in `deploy/` (`gunicorn.conf.py`, `codesense.service`, `nginx-codesense.conf`, `codesense.logrotate`, `backup_db.sh`). In short: set the variables above, run `migrate`, `seed_activities` and `collectstatic`, then run gunicorn behind nginx.

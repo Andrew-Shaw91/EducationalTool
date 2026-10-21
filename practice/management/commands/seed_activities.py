@@ -1,8 +1,8 @@
 import random
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
-from practice.models import Activity, QuestionType, Topic
+from practice.models import Activity, BlockLevel, QuestionType, Topic
 
 
 QUESTION_TYPES = [
@@ -394,6 +394,7 @@ ACTIVITIES = [
         "title": "What does this checkout fragment do?",
         "display_order": 1,
         "bloom_level": 2,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 3,
         "stem": "Explain in plain English what this code does. Name the values, not only the syntax.",
         "code_snippet": "price = 12\nquantity = 3\ntotal = price * quantity\nprint(total)",
@@ -445,6 +446,7 @@ ACTIVITIES = [
         "title": "Running total over three numbers",
         "display_order": 1,
         "bloom_level": 2,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 3,
         "stem": "What is printed when this program finishes?",
         "code_snippet": "total = 0\nfor n in [2, 4, 6]:\n    total = total + n\nprint(total)",
@@ -483,6 +485,7 @@ ACTIVITIES = [
         "title": "Pass mark labelled the wrong way",
         "display_order": 1,
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "The intended rule is: a score of 50 or more is a pass. "
@@ -543,6 +546,7 @@ ACTIVITIES = [
         "title": "Is this even-number test trustworthy?",
         "display_order": 1,
         "bloom_level": 6,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "A student asked an AI to complete is_even so that it returns True "
@@ -599,6 +603,7 @@ ACTIVITIES = [
         "title": "What problem is this list fragment solving?",
         "display_order": 1,
         "bloom_level": 2,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 3,
         "stem": "What overall problem is this program solving? Avoid describing only the syntax.",
         "code_snippet": (
@@ -653,6 +658,7 @@ ACTIVITIES = [
         "title": "Tighten this generated lookup",
         "display_order": 1,
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "An AI produced the function below for: return the stock count for "
@@ -730,6 +736,7 @@ ACTIVITIES = [
         "title": "Specify a vowel counter without writing it",
         "display_order": 2,
         "bloom_level": 3,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "Do not write the Python. Write a short specification (the kind of "
@@ -805,6 +812,7 @@ ACTIVITIES = [
         "title": "Explain this letter-counting loop",
         "display_order": 2,
         "bloom_level": 2,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 3,
         "stem": (
             "Explain in plain English what this code does. Say what repeats, "
@@ -866,6 +874,7 @@ ACTIVITIES = [
         "title": "Which branch runs?",
         "display_order": 2,
         "bloom_level": 2,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 2,
         "stem": "What is printed?",
         "code_snippet": (
@@ -904,6 +913,7 @@ ACTIVITIES = [
         "title": "Does this line swap the two values?",
         "display_order": 2,
         "bloom_level": 6,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "The student wants to swap the values of left and right. "
@@ -953,6 +963,7 @@ ACTIVITIES = [
         "title": "What is the = symbol called?",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": "In the line below, which term correctly describes the = symbol?",
         "code_snippet": "age = 17",
@@ -988,6 +999,7 @@ ACTIVITIES = [
         "title": "Name the part after if",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": "What is the expression score >= 50 called in this code?",
         "code_snippet": 'if score >= 50:\n    print("pass")',
@@ -1023,6 +1035,7 @@ ACTIVITIES = [
         "title": "What is one pass of a loop called?",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": (
             "Each complete run of the indented block, once for each item in "
@@ -1060,6 +1073,7 @@ ACTIVITIES = [
         "title": "Parameter or argument?",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": "In this function definition, what is the name `name` called?",
         "code_snippet": 'def greet(name):\n    return "Hi " + name',
@@ -1096,6 +1110,7 @@ ACTIVITIES = [
         "title": "What is the number in square brackets?",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": (
             "In colours[1], what is the number 1, which picks out a single "
@@ -1135,6 +1150,7 @@ ACTIVITIES = [
         "title": "Keys and values",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 1,
         "stem": 'In this dictionary, what is "apples" called?',
         "code_snippet": 'stock = {"apples": 5, "pears": 2}',
@@ -1173,6 +1189,7 @@ ACTIVITIES = [
         "title": "Define a variable",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": "In your own words, what is a variable in programming?",
         "code_snippet": "",
@@ -1224,6 +1241,7 @@ ACTIVITIES = [
         "title": "Define a function",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "In your own words, what is a function, and why do programmers "
@@ -1279,6 +1297,7 @@ ACTIVITIES = [
         "title": "Define a dictionary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "In your own words, what is a dictionary in Python, and how is it "
@@ -1334,6 +1353,7 @@ ACTIVITIES = [
         "question_type": "code-completion",
         "title": "Complete the bill total",
         "bloom_level": 3,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "The program should print the total the customer pays: the "
@@ -1384,6 +1404,7 @@ ACTIVITIES = [
         "question_type": "misconception-analysis",
         "title": "Why did the student predict 10?",
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 3,
         "stem": (
             "A student predicts this program prints 10 and explains: 'b is "
@@ -1436,6 +1457,7 @@ ACTIVITIES = [
         "question_type": "extend-code",
         "title": "Add a discount without a magic number",
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "This program prices an order. Extend it so it also applies a 10% "
@@ -1504,6 +1526,7 @@ ACTIVITIES = [
         "question_type": "modify-code",
         "title": "A rule changes: does 65 qualify?",
         "bloom_level": 3,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 3,
         "stem": (
             "The pricing rule has changed: people aged 65 and over now get "
@@ -1561,6 +1584,7 @@ ACTIVITIES = [
         "question_type": "code-improvement",
         "title": "Tidy the repeated tests",
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "An AI generated this grading function. It gives the right "
@@ -1636,6 +1660,7 @@ ACTIVITIES = [
         "question_type": "ai-suggestion",
         "title": "Is this leap-year check trustworthy?",
         "bloom_level": 6,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "Requirement: a year is a leap year if it is divisible by 4, "
@@ -1710,6 +1735,7 @@ ACTIVITIES = [
         "question_type": "code-completion",
         "title": "Print 1 to 5",
         "bloom_level": 3,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 2,
         "stem": (
             "The program should print the numbers 1, 2, 3, 4, 5, each on its "
@@ -1751,6 +1777,7 @@ ACTIVITIES = [
         "question_type": "compare-solutions",
         "title": "Two ways to total a list",
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "Two AI-generated programs both try to print the total of the "
@@ -1816,6 +1843,7 @@ ACTIVITIES = [
         "question_type": "extend-code",
         "title": "From a total to an average",
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "This program totals a list of scores. Extend it so it also "
@@ -1881,6 +1909,7 @@ ACTIVITIES = [
         "question_type": "ai-suggestion",
         "title": "Will this countdown ever finish?",
         "bloom_level": 6,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "Requirement: count_down(n) prints n, n-1, ... 1 and then prints "
@@ -1946,6 +1975,7 @@ ACTIVITIES = [
         "question_type": "tracing",
         "title": "What does double(4) give back?",
         "bloom_level": 2,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 3,
         "stem": "What is printed when this program runs?",
         "code_snippet": (
@@ -1992,6 +2022,7 @@ ACTIVITIES = [
         "question_type": "debugging",
         "title": "The average that came back empty",
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "The programmer expected this program to print only 'Average is "
@@ -2049,6 +2080,7 @@ ACTIVITIES = [
         "question_type": "code-improvement",
         "title": "Stop repeating the tax calculation",
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "An AI generated this code to show prices with 20% tax. It works "
@@ -2127,6 +2159,7 @@ ACTIVITIES = [
         "question_type": "modify-code",
         "title": "Print only the long names",
         "bloom_level": 3,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 3,
         "stem": (
             "The program should print only the names with more than 3 "
@@ -2191,6 +2224,7 @@ ACTIVITIES = [
         "question_type": "misconception-analysis",
         "title": "Why did the student predict [1, 2, 3]?",
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 3,
         "stem": (
             "A student predicts this program prints [1, 2, 3] and says: 'I "
@@ -2238,6 +2272,7 @@ ACTIVITIES = [
         "question_type": "extend-code",
         "title": "Collect the passing marks",
         "bloom_level": 5,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 5,
         "stem": (
             "This program counts passing marks (50 or more). Extend it so it "
@@ -2309,6 +2344,7 @@ ACTIVITIES = [
         "question_type": "code-quality-review",
         "title": "Review the negative-number check",
         "bloom_level": 6,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 4,
         "stem": (
             "An AI generated this function to report whether a list contains "
@@ -2377,6 +2413,7 @@ ACTIVITIES = [
         "question_type": "purpose",
         "title": "What is this dictionary program for?",
         "bloom_level": 2,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 3,
         "stem": (
             "What overall problem is this program solving? Avoid describing "
@@ -2428,6 +2465,7 @@ ACTIVITIES = [
         "question_type": "code-completion",
         "title": "Print every key with its value",
         "bloom_level": 3,
+        "block_level": BlockLevel.BLOCKS,
         "estimated_minutes": 2,
         "stem": (
             "The program should print each item with its price, as 'tea 2' "
@@ -2474,6 +2512,7 @@ ACTIVITIES = [
         "question_type": "compare-solutions",
         "title": "Two vote counters",
         "bloom_level": 4,
+        "block_level": BlockLevel.RELATIONS,
         "estimated_minutes": 4,
         "stem": (
             "Two AI-generated programs both try to tally votes into a "
@@ -2540,6 +2579,7 @@ ACTIVITIES = [
         "question_type": "ai-suggestion",
         "title": "Is this stock total correct?",
         "bloom_level": 6,
+        "block_level": BlockLevel.MACRO,
         "estimated_minutes": 4,
         "stem": (
             "Requirement: total_stock(stock) returns the total number of "
@@ -2605,6 +2645,7 @@ ACTIVITIES = [
         "title": "Match the variable vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2659,6 +2700,7 @@ ACTIVITIES = [
         "title": "Match the conditional vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2716,6 +2758,7 @@ ACTIVITIES = [
         "title": "Match the loop vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2771,6 +2814,7 @@ ACTIVITIES = [
         "title": "Match the function vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2826,6 +2870,7 @@ ACTIVITIES = [
         "title": "Match the list vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2881,6 +2926,7 @@ ACTIVITIES = [
         "title": "Match the dictionary vocabulary",
         "display_order": 0,
         "bloom_level": 1,
+        "block_level": BlockLevel.ATOMS,
         "estimated_minutes": 2,
         "stem": (
             "Match each term to the definition that fits it. The code is there so "
@@ -2928,6 +2974,134 @@ ACTIVITIES = [
         ],
         "hint_text": "In \"apples\": 5, decide which half is used to find things and which half is the thing found.",
         "follow_up_idea": "Say what stock[\"kiwis\"] would do in the snippet, and which of the five terms names that outcome.",
+    },
+    {
+        "topic": "functions",
+        "question_type": "explain-code",
+        "title": "What does this function take in and give back?",
+        "display_order": 0,
+        "bloom_level": 2,
+        "block_level": BlockLevel.BLOCKS,
+        "estimated_minutes": 3,
+        "stem": (
+            "Explain in plain English what the function does and how the "
+            "program uses it. Say what goes in, what comes out, and what is "
+            "printed."
+        ),
+        "code_snippet": (
+            "def area(width, height):\n"
+            "    return width * height\n"
+            "\n"
+            "print(area(3, 4))\n"
+            "print(area(5, 2))"
+        ),
+        "choices": [],
+        "correct_choice": "",
+        "model_explanation": (
+            "area is a function: a named block that takes two inputs, width "
+            "and height (its parameters), and hands back their product with "
+            "return. The program then calls it twice with different "
+            "arguments, so the same block of code is reused: area(3, 4) gives "
+            "12 and area(5, 2) gives 10, and each result is printed."
+        ),
+        "success_criteria": (
+            "Says the function takes two values in, returns their product, "
+            "and is called twice with different values, printing 12 and 10."
+        ),
+        "expected_concepts": [
+            {
+                "name": "Takes inputs",
+                "description": "The function receives two values (width and height) as parameters.",
+                "keywords": ["input", "parameter", "argument", "takes", "receives", "width", "height", "two"],
+            },
+            {
+                "name": "Returns a result",
+                "description": "The function multiplies the two values and returns the product to the caller.",
+                "keywords": ["return", "returns", "gives back", "product", "multipl", "result"],
+            },
+            {
+                "name": "Reused with different values",
+                "description": "The same function is called twice with different arguments, giving 12 and 10.",
+                "keywords": ["twice", "again", "reuse", "different", "12", "10", "called", "call"],
+            },
+        ],
+        "misconceptions": [
+            "Believing the function runs where it is defined, rather than where it is called.",
+            "Believing width and height are fixed numbers rather than placeholders for whatever is passed in.",
+        ],
+        "hint_text": (
+            "Look at the two lines that start with print. Which values go "
+            "into area on each one, and what does the line with return do "
+            "with them?"
+        ),
+        "follow_up_idea": (
+            "Say what area(10, 10) would print, without running it, and "
+            "which line of the function produced that number."
+        ),
+    },
+    {
+        "topic": "dictionaries",
+        "question_type": "explain-code",
+        "title": "What does this dictionary update do?",
+        "display_order": 0,
+        "bloom_level": 2,
+        "block_level": BlockLevel.BLOCKS,
+        "estimated_minutes": 3,
+        "stem": (
+            "Explain in plain English what this code does. Say what the "
+            "dictionary holds, what the second line changes, and what is "
+            "printed."
+        ),
+        "code_snippet": (
+            'ages = {"Ada": 36, "Alan": 41}\n'
+            'ages["Ada"] = 37\n'
+            'print(ages["Ada"])\n'
+            "print(len(ages))"
+        ),
+        "choices": [],
+        "correct_choice": "",
+        "model_explanation": (
+            "ages is a dictionary holding two entries: each name (key) is "
+            "paired with an age (value). The second line assigns to a key "
+            "that already exists, so it replaces Ada's value (36 becomes 37) "
+            "rather than adding a new entry. The program prints 37, then the "
+            "number of entries, which is still 2."
+        ),
+        "success_criteria": (
+            "Says the dictionary pairs names with ages, that the second line "
+            "replaces an existing value instead of adding an entry, and that "
+            "37 and 2 are printed."
+        ),
+        "expected_concepts": [
+            {
+                "name": "Keys paired with values",
+                "description": "The dictionary stores names (keys) paired with ages (values).",
+                "keywords": ["key", "value", "pair", "name", "age", "entries", "entry", "stores", "holds"],
+            },
+            {
+                "name": "Existing value replaced",
+                "description": "Assigning to an existing key replaces its value; it does not create a second entry.",
+                "keywords": ["replace", "update", "change", "overwrit", "37", "same key", "already"],
+            },
+            {
+                "name": "Output",
+                "description": "37 is printed, then the number of entries, which is still 2.",
+                "keywords": ["37", "2", "prints", "print", "len", "count", "size", "two"],
+            },
+        ],
+        "misconceptions": [
+            "Believing assigning to an existing key adds a second entry (so len would print 3).",
+            "Believing a dictionary entry cannot be changed once it has been created.",
+        ],
+        "hint_text": (
+            "Compare the dictionary before and after line 2. Is there a "
+            "new key, or did something about an existing key change? Then "
+            "ask what len counts."
+        ),
+        "follow_up_idea": (
+            'Predict what changes if line 2 uses the new key "Grace" '
+            "instead of \"Ada\", and what len(ages) would print then."
+        ),
     },
 ]
 
@@ -2993,6 +3167,11 @@ class Command(BaseCommand):
             if data.get("choices") and data.get("correct_choice"):
                 data = balance_choices(data, mc_slot)
                 mc_slot += 1
+            if "block_level" not in data:
+                raise CommandError(
+                    f"Activity {data['title']!r} has no block_level; every activity "
+                    "must be tagged with a Block Model level."
+                )
             topic = topic_by_slug[data.pop("topic")]
             qtype = type_by_slug[data.pop("question_type")]
             # Progression within a topic follows Bloom level (L1 first);

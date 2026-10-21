@@ -14,6 +14,7 @@
                 <div class="d-flex flex-wrap gap-2 mb-2">
                     <span class="chip chip-{{ activity.question_type.stance }}">{{ activity.question_type.name }}</span>
                     <span class="chip chip-bloom">L{{ activity.bloom_level }} {{ activity.bloom_label }}</span>
+                    <span class="chip chip-block">{{ activity.block_label }}</span>
                     <span class="chip">~{{ activity.estimated_minutes }} min</span>
                     {% if activity.id in completed %}
                     <span class="chip chip-shape">Attempted</span>

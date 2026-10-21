@@ -1,0 +1,45 @@
+# systemd unit for CodeSense. Install with:
+#   sudo cp deploy/codesense.service /etc/systemd/system/codesense.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now codesense
+#
+# Assumed layout (see DEPLOYMENT.md):
+#   /srv/codesense/app    the project (manage.py, .env, logs/, staticfiles/)
+#   /srv/codesense/venv   the Python virtual environment
+#   /srv/codesense/data   the SQLite database and backups
+# If you use other paths, change WorkingDirectory and ExecStart below.
+
+[Unit]
+Description=CodeSense (gunicorn)
+After=network.target
+# Give up after 5 failed starts in 2 minutes, so a broken config does not loop forever.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=codesense
+Group=codesense
+WorkingDirectory=/srv/codesense/app
+
+# "Activating" the virtual environment means using its programs: the gunicorn
+# below lives in the venv, so it runs with the venv's Python and packages.
+# Settings (SECRET_KEY, ALLOWED_HOSTS, ...) are read from /srv/codesense/app/.env
+# by Django itself.
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/codesense/venv/bin/gunicorn --config deploy/gunicorn.conf.py codesense.wsgi:application
+
+# Reload workers without dropping the service: sudo systemctl reload codesense
+ExecReload=/bin/kill -s HUP $MAINPID
+
+# Start on boot (see [Install]) and restart if it crashes.
+Restart=on-failure
+RestartSec=5
+
+# Light hardening that does not get in the way of a simple setup.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

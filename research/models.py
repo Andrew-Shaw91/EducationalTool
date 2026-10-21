@@ -38,6 +38,10 @@ Attempt (one per submission)
   hints_used       Hints requested before submitting. Null if STORE_HINT_USAGE off.
   created_at       Submission time. Empty if STORE_TIMESTAMPS is off.
 
+Not stored here, but available in the CSV export through the activity link:
+topic, question type, Bloom level and Block Model level (Atoms, Blocks,
+Relations, Macro Structure). They describe the activity, not the participant.
+
 NOT stored: the feedback text shown to the student, anything typed while
 requesting a hint, or any data when ANALYTICS_ENABLED is False.
 """

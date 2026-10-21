@@ -20,6 +20,40 @@ class BloomLevel(models.IntegerChoices):
     EVALUATION = 6, "Evaluation"
 
 
+class BlockLevel(models.IntegerChoices):
+    """
+    Block Model of program comprehension (Schulte, 2008): the *grain* of program
+    that an activity asks the student to understand. Bloom describes the thinking
+    demanded; this describes what the thinking is about. The numeric order is the
+    intended progression Atoms -> Blocks -> Relations -> Macro Structure, and is
+    metadata only: nothing forces students through it.
+    """
+
+    ATOMS = 1, "Atoms"
+    BLOCKS = 2, "Blocks"
+    RELATIONS = 3, "Relations"
+    MACRO = 4, "Macro Structure"
+
+
+BLOCK_DESCRIPTIONS = {
+    BlockLevel.ATOMS: (
+        "individual syntax elements: names, operators, keywords and values."
+    ),
+    BlockLevel.BLOCKS: (
+        "a logical group of statements read as one unit, such as a loop, a "
+        "conditional or a function."
+    ),
+    BlockLevel.RELATIONS: (
+        "how parts of the program affect each other: variable updates, "
+        "function calls, data flow and control flow."
+    ),
+    BlockLevel.MACRO: (
+        "the purpose of the whole program: the problem it solves and the goal "
+        "it serves."
+    ),
+}
+
+
 class QuestionType(models.Model):
     """
     Pedagogical activity family, not merely a UI widget.
@@ -81,6 +115,18 @@ class Topic(models.Model):
 
     def activity_count(self):
         return self.activities.count()
+
+    def block_progression(self):
+        """
+        This topic's activities grouped along the Block Model progression, as
+        [(BlockLevel, [Activity, ...]), ...] from Atoms to Macro Structure.
+        Metadata for analysis and future sequencing; the learner-facing order
+        is still Bloom order (see Activity.next_in_topic).
+        """
+        groups = {level: [] for level in BlockLevel}
+        for activity in self.activities.all():
+            groups[BlockLevel(activity.block_level)].append(activity)
+        return list(groups.items())
 
 
 class Activity(models.Model):
@@ -160,6 +206,15 @@ class Activity(models.Model):
         help_text="A targeted next micro-activity if the student struggles or succeeds."
     )
     bloom_level = models.PositiveSmallIntegerField(choices=BloomLevel.choices)
+    block_level = models.PositiveSmallIntegerField(
+        choices=BlockLevel.choices,
+        default=BlockLevel.ATOMS,
+        help_text=(
+            "Block Model level: the grain of program the student must "
+            "understand (Atoms, Blocks, Relations, Macro Structure). Set "
+            "explicitly for every seeded activity."
+        ),
+    )
     estimated_minutes = models.PositiveSmallIntegerField(default=3)
     display_order = models.PositiveSmallIntegerField(default=0)
 
@@ -176,6 +231,19 @@ class Activity(models.Model):
     @property
     def bloom_label(self):
         return BloomLevel(self.bloom_level).label
+
+    @property
+    def block_label(self):
+        return BlockLevel(self.block_level).label
+
+    @property
+    def block_description(self):
+        return BLOCK_DESCRIPTIONS[BlockLevel(self.block_level)]
+
+    @property
+    def block_progression_text(self):
+        """Position on the Atoms -> Blocks -> Relations -> Macro Structure path, e.g. 'step 2 of 4'."""
+        return f"step {self.block_level} of {len(BlockLevel)}"
 
     @property
     def is_choice_based(self):

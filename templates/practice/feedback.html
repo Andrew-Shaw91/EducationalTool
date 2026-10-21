@@ -5,7 +5,11 @@
     <a href="{{ activity.topic.get_absolute_url }}">{{ activity.topic.name }}</a>
     · feedback
 </p>
-<h1 class="h2 mb-3">{{ activity.title }}</h1>
+<h1 class="h2 mb-2">{{ activity.title }}</h1>
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <span class="chip chip-bloom">L{{ activity.bloom_level }} {{ activity.bloom_label }}</span>
+    <span class="chip chip-block">{{ activity.block_label }}</span>
+</div>
 
 {% if assessment.match_results %}
 <div class="card card-quiet {% if assessment.is_correct %}feedback-yes{% else %}feedback-no{% endif %} mb-4">
@@ -125,6 +129,18 @@
         <p class="mb-0">{{ follow_up }}</p>
     </div>
 </article>
+
+<details class="muted small mb-4">
+    <summary>Why this activity was chosen</summary>
+    <ul class="mt-2 mb-0 ps-3">
+        <li><strong>Bloom level:</strong> L{{ activity.bloom_level }} {{ activity.bloom_label }}: {{ activity.question_type.short_description }}</li>
+        <li><strong>Block Model level:</strong> {{ activity.block_label }} ({{ activity.block_progression_text }}): {{ activity.block_description }}</li>
+        <li><strong>Misconception targeted:</strong>
+            {% if activity.misconceptions %}{{ activity.misconceptions.0 }}{% else %}none recorded{% endif %}
+            {% if activity.misconceptions|length > 1 %}(more in the list above){% endif %}
+        </li>
+    </ul>
+</details>
 
 <div class="d-flex flex-wrap gap-2">
     {% if next_item %}

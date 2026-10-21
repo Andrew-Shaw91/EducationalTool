@@ -1,0 +1,15 @@
+# Rotates the Django application log so it cannot fill the disk.
+# Install: sudo cp deploy/codesense.logrotate /etc/logrotate.d/codesense
+# Test:    sudo logrotate --debug /etc/logrotate.d/codesense
+#
+# No "copytruncate" is needed: the application reopens the file after rotation.
+/srv/codesense/app/logs/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    su codesense codesense
+    create 0640 codesense codesense
+}

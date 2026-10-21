@@ -154,6 +154,8 @@ class ExportTests(ResearchTestCase):
         rows = list(csv.DictReader(io.StringIO(out.getvalue())))
         self.assertEqual(len(rows), 2)
         self.assertEqual(rows[0]["question_type"], "tracing")
+        self.assertEqual(rows[0]["block_level"], "Relations")
+        self.assertEqual(rows[1]["block_level"], "Blocks")
         self.assertEqual(rows[1]["concepts_found"], "Iteration|Accumulation|Output")
         self.assertRegex(rows[0]["participant"], r"^P-[0-9A-F]{8}$")
 

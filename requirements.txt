@@ -1,1 +1,4 @@
 Django>=5.2,<6
+# Application server for the Linux VM (see DEPLOYMENT.md). Not needed, and not
+# installed, on Windows development machines, which use `manage.py runserver`.
+gunicorn>=23.0; sys_platform != "win32"
