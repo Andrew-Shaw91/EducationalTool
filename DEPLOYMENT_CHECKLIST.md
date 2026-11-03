@@ -35,7 +35,7 @@ Tick each box as you go. Do not move to the next section until the "Check" line 
 - [ ] In `.env`: `CODESENSE_LLM_API_KEY` is **empty** (no LLM adapter exists yet).
 - [ ] **Check:** `manage.py check --deploy` shows no `SECRET_KEY` or `DEBUG` warnings (HTTPS warnings are expected without HTTPS).
 - [ ] `manage.py migrate` finished without errors.
-- [ ] `manage.py seed_activities` printed `Seeded 16 question types, 6 topics, 48 ...`.
+- [ ] `manage.py seed_activities` printed `Seeded 16 question types, 6 topics, 109 ...`.
 - [ ] `sudo -u codesense env USE_HTTPS=False .../python manage.py test` ends with `OK`.
 - [ ] `manage.py collectstatic --noinput` copied the static files.
 - [ ] **Check:** gunicorn started by hand answers `curl -sI http://127.0.0.1:8000/` with `200 OK` (then stopped with Ctrl+C).

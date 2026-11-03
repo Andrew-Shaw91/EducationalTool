@@ -76,3 +76,13 @@ def env_int(name: str, default: int) -> int:
         return int(value.strip())
     except ValueError as exc:
         raise ValueError(f"{name} must be a whole number, got {value!r}") from exc
+
+
+def env_float(name: str, default: float) -> float:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return default
+    try:
+        return float(value.strip())
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number, got {value!r}") from exc

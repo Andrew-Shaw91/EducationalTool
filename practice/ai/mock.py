@@ -1,6 +1,8 @@
 from practice.models import Activity
 
-from .base import AIService
+from practice.selection import select_activity
+
+from .base import AIService, ExerciseRequest
 
 
 class MockAIService(AIService):
@@ -54,4 +56,16 @@ class MockAIService(AIService):
             "data. If the original used numbers, try a short list of words; "
             "if it used a condition on a number, try a condition on a string "
             "length. Predict first, then check your prediction."
+        )
+
+    def generate_exercise(self, request: ExerciseRequest):
+        """
+        Offline stand-in for a generative model: serves a hand-written,
+        code-verified activity at exactly the requested level. The prompt is
+        accepted (as a real model would receive it) but not needed here.
+        """
+        return select_activity(
+            request.level,
+            topic=request.topic,
+            attempted_order=request.attempted_order,
         )

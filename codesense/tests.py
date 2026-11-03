@@ -19,7 +19,7 @@ from unittest import mock
 from django.conf import settings
 from django.test import SimpleTestCase
 
-from codesense.envconfig import env_bool, env_int, env_list, env_str, load_env_file
+from codesense.envconfig import env_bool, env_float, env_int, env_list, env_str, load_env_file
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 GOOD_KEY = "k8Jf2-test-only-5Hq9ZxW3vLm7Rt1YcNb4Ua6PdGs0EoXiTzVhKyQwBjMnFlAr"
@@ -65,6 +65,9 @@ def clean_env(**extra):
             "DEBUG", "SECRET_KEY", "ALLOWED_HOSTS", "USE_HTTPS", "DATABASE_PATH",
             "CSRF_TRUSTED_ORIGINS", "LOG_LEVEL", "SECURE_HSTS_SECONDS",
             "CODESENSE_LLM_API_KEY", "CODESENSE_FEEDBACK_SERVICE", "CODESENSE_ENV_FILE",
+            "CODESENSE_ADAPTIVE", "CODESENSE_START_LEVEL", "CODESENSE_PROMOTE_AFTER",
+            "CODESENSE_DEMOTE_AFTER", "CODESENSE_REMEDIATION_PROMOTE_AFTER",
+            "CODESENSE_OPEN_SUCCESS_SCORE", "CODESENSE_COUNT_OFF_LEVEL",
         }
     }
     # A file that does not exist: settings then use only the variables given here.
@@ -341,3 +344,58 @@ class DeployFilesTests(SimpleTestCase):
         ignore = self.text(".gitignore").splitlines()
         for pattern in (".env", "logs/", "staticfiles/", "db.sqlite3"):
             self.assertIn(pattern, ignore)
+
+
+ADAPTIVE_PROBE = (
+    "import os, json;"
+    "os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'codesense.settings');"
+    "from django.conf import settings as s;"
+    "print(json.dumps(s.ADAPTIVE))"
+)
+
+
+class AdaptiveSettingsTests(SimpleTestCase):
+    def test_float_helper(self):
+        with mock.patch.dict(os.environ, {"F": " 0.75 ", "BAD": "high"}):
+            self.assertEqual(env_float("F", 0.6), 0.75)
+            self.assertEqual(env_float("MISSING_FLOAT", 0.6), 0.6)
+            with self.assertRaises(ValueError):
+                env_float("BAD", 0.6)
+
+    def test_defaults_match_the_documented_rules(self):
+        result = run_python(ADAPTIVE_PROBE)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        adaptive = json.loads(result.stdout.strip().splitlines()[-1])
+        self.assertEqual(adaptive["PROMOTE_AFTER"], 3)
+        self.assertEqual(adaptive["DEMOTE_AFTER"], 2)
+        self.assertEqual(adaptive["REMEDIATION_PROMOTE_AFTER"], 3)
+        self.assertTrue(adaptive["ENABLED"])
+        self.assertFalse(adaptive["COUNT_OFF_LEVEL"])
+
+    def test_environment_overrides_the_rules(self):
+        result = run_python(
+            ADAPTIVE_PROBE,
+            CODESENSE_PROMOTE_AFTER="4", CODESENSE_DEMOTE_AFTER="3",
+            CODESENSE_ADAPTIVE="0", CODESENSE_OPEN_SUCCESS_SCORE="0.8",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        adaptive = json.loads(result.stdout.strip().splitlines()[-1])
+        self.assertEqual((adaptive["PROMOTE_AFTER"], adaptive["DEMOTE_AFTER"]), (4, 3))
+        self.assertFalse(adaptive["ENABLED"])
+        self.assertEqual(adaptive["OPEN_SUCCESS_SCORE"], 0.8)
+
+    def test_stepping_back_can_be_switched_off(self):
+        result = run_python(ADAPTIVE_PROBE, CODESENSE_DEMOTE_AFTER="0")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        adaptive = json.loads(result.stdout.strip().splitlines()[-1])
+        self.assertEqual(adaptive["DEMOTE_AFTER"], 0)
+        result = run_python(ADAPTIVE_PROBE, CODESENSE_DEMOTE_AFTER="-1")
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_unusable_rules_stop_the_app_at_startup(self):
+        # A remediation threshold of 1 would allow instant re-promotion.
+        result = run_python(ADAPTIVE_PROBE, CODESENSE_REMEDIATION_PROMOTE_AFTER="1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("REMEDIATION_PROMOTE_AFTER", result.stderr)
+        result = run_python(ADAPTIVE_PROBE, CODESENSE_PROMOTE_AFTER="three")
+        self.assertNotEqual(result.returncode, 0)

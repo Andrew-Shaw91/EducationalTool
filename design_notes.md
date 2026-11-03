@@ -15,7 +15,7 @@ Every topic contains at least one activity at every level, and the levels are de
 | L5 Synthesis | build something new from a working base, combining ideas | Improve / Refactor, Extend the Code |
 | L6 Evaluation | judge code against a requirement, including AI output | Judge an AI Suggestion, Review Code Quality |
 
-Current coverage (48 activities): 15 / 9 / 6 / 6 / 6 / 6 across L1-L6. Several design choices follow from the project's focus on comprehension:
+Current coverage (109 activities): 18 / 18 / 18 / 18 / 18 / 19 across L1-L6, and every topic has 3-5 activities at every level (conditionals has four at L6, every other cell has three; a test enforces the range). That depth is what makes mastery-based progression possible: a learner who misses an item can be given a *different* one on the same topic and level (section 0b). The first 48 were hand-written for the initial prototype; the further 61 live in `practice/seed_content/`, one file per topic, and every claim they make about what code prints is registered next to the activity and executed by `practice/test_seed_content.py`. Several design choices follow from the project's focus on comprehension:
 
 - **Reading and judging dominate.** About four fifths of the activities ask students to read, trace, compare or evaluate code; writing-style tasks (modify, extend, improve, prompt) are the minority, and even those accept a description in words as well as code. Tests enforce both properties.
 - **Matching is scored per pair.** Each Match Terms item pairs five terms with six definitions (one fits nothing, so the last pair cannot be won by elimination), anchored to a short code fragment. Credit is per pair and the item counts as correct only if every pair is; feedback names the missed terms rather than just a score. The order of definitions is a seeded shuffle, so it is stable across sessions and reseeding. The student's choices are stored as term -> definition text, a closed-choice answer kept even when free-text storage is off.
@@ -43,17 +43,17 @@ Understanding is expected to build from Atoms towards Macro Structure. The full 
 
 **Why program comprehension matters here.** When code can be generated on request, a student's most frequent task is no longer writing code but reading it: judging whether generated code does what was asked, tracing why it fails, and deciding whether it can be trusted. Studies of novices (for example Lister et al., 2004) link weak tracing and reading skills to weak writing. The Block Model gives a vocabulary for *what part* of a program a student can and cannot yet read. (Citations are to be checked against the originals before submission.)
 
-**Relationship between Bloom and Block levels.** They answer different questions. Bloom describes the **thinking demanded** (recall, comprehend, apply, analyse, synthesise, evaluate); the Block Model describes **what that thinking is about** (an atom, a block, a relation, the whole). They are correlated but deliberately not the same ladder. The distribution across the current 48 activities:
+**Relationship between Bloom and Block levels.** They answer different questions. Bloom describes the **thinking demanded** (recall, comprehend, apply, analyse, synthesise, evaluate); the Block Model describes **what that thinking is about** (an atom, a block, a relation, the whole). They are correlated but deliberately not the same ladder. The distribution across the current 109 activities:
 
 | Bloom \ Block | Atoms | Blocks | Relations | Macro |
 |---------------|:-----:|:------:|:---------:|:-----:|
-| L1 Knowledge | 15 | 0 | 0 | 0 |
-| L2 Comprehension | 0 | 4 | 3 | 2 |
-| L3 Application | 1 | 4 | 0 | 1 |
-| L4 Analysis | 0 | 0 | 6 | 0 |
-| L5 Synthesis | 0 | 0 | 0 | 6 |
-| L6 Evaluation | 0 | 0 | 3 | 3 |
-| **Total** | **16** | **8** | **12** | **12** |
+| L1 Knowledge | 18 | 0 | 0 | 0 |
+| L2 Comprehension | 0 | 6 | 6 | 6 |
+| L3 Application | 6 | 8 | 0 | 4 |
+| L4 Analysis | 0 | 0 | 18 | 0 |
+| L5 Synthesis | 0 | 0 | 0 | 18 |
+| L6 Evaluation | 0 | 0 | 10 | 9 |
+| **Total** | **24** | **14** | **40** | **31** |
 
 Three patterns follow from the task types and are enforced by tests: recall (L1) is always about atoms; analysis (L4) is always about relations, since finding a fault means following cause and effect; evaluation (L6) is always about relations or the whole program. L2 spans three block levels on purpose: reading a block (Explain), following relations (Trace) and stating the purpose (Purpose) are different comprehension skills at the same Bloom level.
 
@@ -80,6 +80,62 @@ Three patterns follow from the task types and are enforced by tests: recall (L1)
 - The distribution is uneven by design (16 / 8 / 12 / 12): Atoms is large because every topic has several vocabulary items, Blocks is small because few task types sit naturally there.
 - The model's dimensions (text surface, execution, goals) are not represented.
 - Nothing yet shows that the progression helps students; it is a design hypothesis.
+
+## 0b. Adaptive progression (added after the Block Model)
+
+A deliberately small, rule-based mechanism moves each learner between the six Bloom levels **within each topic**. It is deterministic and explainable: the same answers always give the same path, and every rule can be stated in one sentence.
+
+**Mastery per topic and level.** Activities are grouped by topic and Bloom level, and a learner holds a separate state (level, streaks, counters, completed flag) for every topic. (An earlier version kept one course-wide level and rotated topics after every activity, so a miss on loops could be followed by a question on dictionaries. That scattered practice and is replaced.) The rules:
+
+1. A learner works in one topic at a time, starting with the first topic in curriculum order.
+2. A **wrong answer never changes topic or level on its own.** The next activity comes from the same topic and level, and is a different, unseen one while any remain (`practice/selection.py`: unseen first, then least recently attempted). Only when every activity in that topic and level has been seen does the least recently seen one repeat.
+3. A level is **passed** after `PROMOTE_AFTER` (3) successes in a row in it. The learner then moves up one level in the same topic.
+4. A topic is **completed** by passing its top level (L6): all six levels, in order. Only then does the next unfinished topic begin. A completed topic is frozen: further practice in it is free and does not change progress.
+5. After the last topic, any topic that was skipped is offered first; when all six are complete the learner is told so.
+
+**An open choice.** The brief says a miss stays at the same level; the earlier requirement said `DEMOTE_AFTER` (2) consecutive misses step the learner back one level (with remediation, below). Both are kept, because they are compatible in the common case: a single miss never moves anyone, and a step back stays in the same topic. `CODESENSE_DEMOTE_AFTER=0` switches stepping back off, giving strict "a miss never changes level" behaviour. Which setting is right is a research decision. With three activities per cell and a streak of three, a learner who misses will meet repeats within that cell; adding activities (up to five per cell) reduces this.
+
+**The AI does not decide levels.** The order of events is fixed:
+
+1. the learner submits an activity;
+2. the existing scoring (`practice/evaluation.py`) judges it;
+3. `outcome_from_assessment` turns that into success or failure;
+4. the rule engine (`practice/progression.py`) updates the level;
+5. only then does the exercise generator receive the new level, as an *input*, and produce content for it.
+
+The engine imports no AI code (a test checks this), the level goes into the generation prompt as a fixed fact the generator is told not to question, and `ExerciseGenerator.next_activity` checks that whatever a generator returns is at the requested level, falling back to the hand-written bank otherwise. A generator therefore cannot move a learner by serving easier or harder content.
+
+**The rules** (constants in `practice/progression.py`; override through `ADAPTIVE` in settings or `CODESENSE_*` environment variables):
+
+| Rule | Default |
+|------|---------|
+| Consecutive successes to move up | 3 |
+| Consecutive failures to move down (0 = never step back) | 2 |
+| Passing the top level completes the topic | always |
+| A success resets the failure streak; a failure resets the success streak | always |
+| Both streaks reset on any level change | always |
+| Levels are clamped to 1-6 | always |
+| Consecutive successes to move up again after a demotion | 3 (must be at least 2) |
+| Success threshold for open answers | 0.6 of target ideas |
+| Count activities from other levels | no |
+
+**Success and failure.** Choice, matching and accept/reject items use the existing `is_correct` (matching needs every pair right; an accept/reject item needs the right decision). Open answers have no right or wrong, so they succeed when the share of target ideas shown reaches the threshold (2 of 3, 3 of 4). This inherits the keyword assessor's limits (section 1): a good answer in unexpected words counts as a failure. Level 5 (Synthesis) is made entirely of open answers, so promotion out of it depends wholly on that assessor. Treat level changes at Level 5 as the least trustworthy until the assessor has been validated.
+
+**Remediation.** A demotion starts remediation. The learner is shown activities at the lower level immediately, and because the streaks restart at zero, one correct answer cannot send them straight back: they need the remediation threshold in a row. The configuration refuses a threshold below 2. Remediation ends at the next promotion.
+
+**Which activities count.** Only activities at the learner's current level *in that activity's topic* change the streaks. Otherwise a learner could climb by repeating easy items, or be demoted for trying a hard one. Other activities can still be attempted and are logged (`counted_for_progress` is false). `COUNT_OFF_LEVEL` changes this.
+
+**Content generation.** The prototype still has no live generator: `MockAIService.generate_exercise` selects from the verified bank at exactly the requested topic and level (`practice/selection.py`: unseen first, then least recently attempted, no randomness). `practice/exercise_prompts.py` builds the level-aware prompt a real model would receive (the thinking task, formats, scope and what to avoid at each level, rising from recall of one symbol to judging a whole program). A future LLM adapter implements `generate_exercise` and gets that prompt, the topic and the level. `ExerciseGenerator.next_activity` accepts what a generator returns only if it has the requested topic *and* level, otherwise it serves from the bank. Each topic and level has three or four hand-written activities, so a learner who keeps missing will eventually meet repeats until more content is added or a live generator is connected.
+
+**Persistence and research data.** `LearnerProgress` (one row per anonymous participant **and topic**: level, both streaks, total promotions, total demotions, remediation flag, completed flag, last update) is the authoritative state when analytics is on. When `ANALYTICS_ENABLED` is off, the state lives only in the browser session (a dictionary keyed by topic) and nothing is written to the database, so progression still works under the strictest privacy setting. Each `Attempt` records the level at the start and end of the activity, its outcome, whether it counted, both streaks afterwards and the progression event it caused (`promotion`, `demotion`, `topic_complete` or blank). `ProgressionEvent` records every such event with its attempt and time. State and log are written in one transaction. The export gains the attempt columns (appended, so earlier columns keep their positions) and `--table events|learners`; the events and learners tables carry the topic, and learners also carry `completed`. Attempts from before this feature have blank progression cells. Migration `research.0004` replaces the earlier course-wide rows with per-topic ones and **deletes any existing course-wide `LearnerProgress` rows** (they cannot be assigned to a topic); attempts and events are untouched.
+
+**Interface.** The home page and activity pages show the topic, the current level and progress toward the next one ("2 / 3 successful activities in a row"), and the miss count toward stepping back when that is on. The feedback page announces a level-up, a step back or a completed topic and says why, and its main button offers the next activity: another one in the same topic and level, or the first one of the next topic only after a completion. "Start learning / Continue learning" (`/next/`) goes to the current topic at the learner's level in it; `/next/?topic=<slug>` does the same for a chosen topic. Neither changes state. Topic cards show Completed, the current level, or Not started. Topics and activities remain freely browsable.
+
+**Limitations.**
+- The thresholds (3 up, 2 down) are conventional, not tuned. They are research parameters; changing them mid-study changes the comparison.
+- The level at the start of an activity is the level held when it is submitted. A learner with two tabs open could submit out of order; this is not guarded against.
+- Progression is per browser: clearing cookies starts a new participant at Level 1 (the same limitation as the anonymous code).
+- Nothing yet shows that this progression helps students. It is a design hypothesis, and `CODESENSE_ADAPTIVE=0` gives a control condition that records attempts without any level logic.
 
 ## 1. Why keyword matching is currently used for free-text assessment
 

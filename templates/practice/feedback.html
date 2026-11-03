@@ -41,6 +41,41 @@
 </div>
 {% endif %}
 
+{% if update %}
+    {% if update.topic_completed %}
+    <div class="card card-quiet level-notice level-up mb-4" role="status">
+        <div class="card-body">
+            <strong>{{ activity.topic.name }} completed: you have shown mastery at all six levels.</strong>
+            <p class="mb-0 mt-2">
+                {% if recommended and moves_to_new_topic %}Next up is {{ recommended.topic.name }}.
+                {% elif all_topics_complete %}That was the last topic: you have completed every topic.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    {% elif update.promoted %}
+    <div class="card card-quiet level-notice level-up mb-4" role="status">
+        <div class="card-body">
+            <strong>Level up: you are now at Level {{ progress.level }} ({{ progress.label }}) in {{ activity.topic.name }}.</strong>
+            <p class="mb-0 mt-2">That was {{ update.before.consecutive_successes|add:1 }} successful activities in a row. The next ones ask for a little more.</p>
+        </div>
+    </div>
+    {% elif update.demoted %}
+    <div class="card card-quiet level-notice level-down mb-4" role="status">
+        <div class="card-body">
+            <strong>Stepping back to Level {{ progress.level }} ({{ progress.label }}).</strong>
+            <p class="mb-0 mt-2">{{ progress.failures_allowed }} misses in a row suggest this is worth another look at a gentler level. Nothing is lost: complete {{ progress.successes_needed }} successful activities in a row to move up again.</p>
+        </div>
+    </div>
+    {% elif progress.completed %}
+    <p class="muted small">You have already completed {{ activity.topic.name }}, so this practice does not change your progress.</p>
+    {% elif off_level %}
+    <p class="muted small">This activity was at a different level from yours in {{ activity.topic.name }} (Level {{ progress.level }}), so it did not count towards moving up or down.</p>
+    {% endif %}
+{% endif %}
+
+{% include "practice/_progress.html" with compact=False %}
+
 <div class="row g-4">
     <div class="col-lg-6">
         <article class="card card-quiet h-100">
@@ -143,8 +178,13 @@
 </details>
 
 <div class="d-flex flex-wrap gap-2">
+    {% if recommended %}
+    <a class="btn btn-primary" href="{{ recommended.get_absolute_url }}">
+        {% if moves_to_new_topic %}Next topic: {{ recommended.topic.name }} &middot; {% else %}Another activity in {{ recommended.topic.name }}, {% endif %}Level {{ recommended.bloom_level }} &middot; {{ recommended.title }}
+    </a>
+    {% endif %}
     {% if next_item %}
-    <a class="btn btn-primary" href="{{ next_item.get_absolute_url }}">Next in {{ activity.topic.name }}</a>
+    <a class="btn {% if recommended %}btn-outline-secondary{% else %}btn-primary{% endif %}" href="{{ next_item.get_absolute_url }}">Next in {{ activity.topic.name }}</a>
     {% endif %}
     <a class="btn btn-outline-secondary" href="{{ activity.topic.get_absolute_url }}">Back to topic</a>
     <a class="btn btn-outline-secondary" href="{% url 'practice:topics' %}">All topics</a>

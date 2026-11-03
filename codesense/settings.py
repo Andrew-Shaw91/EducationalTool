@@ -17,7 +17,7 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
-from .envconfig import env_bool, env_int, env_list, env_str, load_env_file
+from .envconfig import env_bool, env_float, env_int, env_list, env_str, load_env_file
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -232,3 +232,37 @@ RESEARCH = {
     "STORE_HINT_USAGE": env_bool("CODESENSE_STORE_HINT_USAGE", True),
     "STORE_TIMESTAMPS": env_bool("CODESENSE_STORE_TIMESTAMPS", True),
 }
+
+# --- Adaptive progression ---------------------------------------------------
+# Deterministic rules that move a learner between Bloom levels. The AI never
+# decides any of this. The rules and their defaults are documented in
+# practice/progression.py; the defaults are imported from there so the numbers
+# live in one place.
+from practice import progression as _rules  # noqa: E402  (no models are imported)
+
+ADAPTIVE = {
+    "ENABLED": env_bool("CODESENSE_ADAPTIVE", _rules.ADAPTIVE_ENABLED),
+    "START_LEVEL": env_int("CODESENSE_START_LEVEL", _rules.START_LEVEL),
+    "PROMOTE_AFTER": env_int("CODESENSE_PROMOTE_AFTER", _rules.PROMOTE_AFTER),
+    "DEMOTE_AFTER": env_int("CODESENSE_DEMOTE_AFTER", _rules.DEMOTE_AFTER),
+    "REMEDIATION_PROMOTE_AFTER": env_int(
+        "CODESENSE_REMEDIATION_PROMOTE_AFTER", _rules.REMEDIATION_PROMOTE_AFTER
+    ),
+    "COUNT_OFF_LEVEL": env_bool("CODESENSE_COUNT_OFF_LEVEL", _rules.COUNT_OFF_LEVEL),
+    "OPEN_SUCCESS_SCORE": env_float(
+        "CODESENSE_OPEN_SUCCESS_SCORE", _rules.OPEN_SUCCESS_SCORE
+    ),
+}
+# Fail at startup, not on a learner's first answer, if the rules are unusable.
+try:
+    _rules.ProgressionConfig(
+        enabled=ADAPTIVE["ENABLED"],
+        start_level=ADAPTIVE["START_LEVEL"],
+        promote_after=ADAPTIVE["PROMOTE_AFTER"],
+        demote_after=ADAPTIVE["DEMOTE_AFTER"],
+        remediation_promote_after=ADAPTIVE["REMEDIATION_PROMOTE_AFTER"],
+        count_off_level=ADAPTIVE["COUNT_OFF_LEVEL"],
+        open_success_score=ADAPTIVE["OPEN_SUCCESS_SCORE"],
+    )
+except ValueError as exc:
+    raise ImproperlyConfigured(f"Invalid adaptive-progression setting: {exc}") from exc

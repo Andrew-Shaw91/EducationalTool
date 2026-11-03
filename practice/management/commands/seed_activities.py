@@ -3105,6 +3105,13 @@ ACTIVITIES = [
     },
 ]
 
+# More activities, so every topic has 3-5 at every Bloom level (see
+# practice/seed_content). They are appended AFTER the items above on purpose: the
+# multiple-choice option placement depends on each item's position in this list.
+from practice.seed_content import EXTRA_ACTIVITIES  # noqa: E402
+
+ACTIVITIES.extend(EXTRA_ACTIVITIES)
+
 
 OPTION_KEYS = "abcdefgh"
 
