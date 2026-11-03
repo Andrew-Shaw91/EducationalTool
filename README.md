@@ -23,8 +23,10 @@ Open http://127.0.0.1:8000/. Bootstrap, fonts and CSS are served from `static/`;
 |------|---------|
 | `practice/` | **Activity data**: topics, question types, activities, evaluation logic, views |
 | `practice/feedback/` | Pluggable free-text assessment (`FeedbackService`, `KeywordFeedbackService`, `AIEnhancedFeedbackService`) |
-| `practice/ai/` | AI scaffolding layer (hints, explanations, follow-ups); mocked |
-| `research/` | **Evaluation data**: `Participant`, `Attempt`, privacy switches, CSV export |
+| `practice/ai/` | AI scaffolding layer (hints, explanations, follow-ups, exercise generation for a given level); mocked |
+| `practice/progression.py` | Deterministic adaptive-progression rules (no AI, no database) |
+| `practice/exercise_prompts.py`, `practice/selection.py` | Level-aware generation prompt; deterministic activity choice |
+| `research/` | **Evaluation data**: `Participant`, `Attempt`, `LearnerProgress`, `ProgressionEvent`, privacy switches, CSV export; `research/progress.py` stores progression state |
 | `static/` | Vendored Bootstrap, fonts and project CSS |
 
 ## Adding or editing activities
@@ -58,6 +60,18 @@ All options are in `codesense/settings.py` and can be overridden with environmen
 | `RESEARCH["STORE_HINT_USAGE"]` | `CODESENSE_STORE_HINT_USAGE` | on | Off = hint counts are not stored |
 | `RESEARCH["STORE_TIMESTAMPS"]` | `CODESENSE_STORE_TIMESTAMPS` | on | Off = no timestamps are stored |
 
+Adaptive progression (rules in `practice/progression.py`, explained in `design_notes.md` section 0b):
+
+| Setting | Env var | Default | Effect |
+|---------|---------|---------|--------|
+| `ADAPTIVE["ENABLED"]` | `CODESENSE_ADAPTIVE` | on | Off = no levels, no progress display; attempts are still recorded |
+| `ADAPTIVE["START_LEVEL"]` | `CODESENSE_START_LEVEL` | `1` | Bloom level new learners begin at |
+| `ADAPTIVE["PROMOTE_AFTER"]` | `CODESENSE_PROMOTE_AFTER` | `3` | Consecutive successes to move up |
+| `ADAPTIVE["DEMOTE_AFTER"]` | `CODESENSE_DEMOTE_AFTER` | `2` | Consecutive failures to step back one level in the same topic. `0` = never step back (a miss always keeps the same topic and level) |
+| `ADAPTIVE["REMEDIATION_PROMOTE_AFTER"]` | `CODESENSE_REMEDIATION_PROMOTE_AFTER` | `3` | Successes needed to move up again after a demotion (minimum 2) |
+| `ADAPTIVE["OPEN_SUCCESS_SCORE"]` | `CODESENSE_OPEN_SUCCESS_SCORE` | `0.6` | Share of target ideas that makes an open answer a success |
+| `ADAPTIVE["COUNT_OFF_LEVEL"]` | `CODESENSE_COUNT_OFF_LEVEL` | off | On = activities from other levels also count |
+
 Example: `CODESENSE_ANALYTICS=0 python manage.py runserver` collects no data.
 
 ## Research data
@@ -65,8 +79,12 @@ Example: `CODESENSE_ANALYTICS=0 python manage.py runserver` collects no data.
 Participants are random codes such as `P-3F9A12C4`; no names, accounts, IP addresses or session keys are stored. Every field is documented in `research/models.py`.
 
 ```bash
-python manage.py export_research_data --output attempts.csv
+python manage.py export_research_data --output attempts.csv                  # one row per attempt
+python manage.py export_research_data --table events --output events.csv     # promotions and demotions
+python manage.py export_research_data --table learners --output learners.csv # current level per participant
 ```
+
+The attempts export includes the learner's level at the start and end of each activity, the success/failure outcome and both streaks, so a level trajectory can be rebuilt.
 
 Evaluation data is also viewable (read-only) in the admin: `python manage.py createsuperuser`, then `/admin/`.
 

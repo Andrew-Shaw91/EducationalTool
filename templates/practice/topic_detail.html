@@ -6,6 +6,11 @@
 <p class="lead">{{ topic.summary }}</p>
 <p class="muted mb-4">{{ topic.why_it_matters }}</p>
 
+{% if progress %}
+{% include "practice/_progress.html" with compact=False %}
+<p class="mb-4"><a class="btn btn-primary" href="{% url 'practice:next' %}?topic={{ topic.slug }}">Continue {{ topic.name }} at my level</a></p>
+{% endif %}
+
 <div class="row g-3">
     {% for activity in topic.activities.all %}
     <div class="col-lg-6">

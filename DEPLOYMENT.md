@@ -189,7 +189,7 @@ sudo -u codesense /srv/codesense/venv/bin/python manage.py migrate
 sudo -u codesense /srv/codesense/venv/bin/python manage.py seed_activities
 ```
 
-`migrate` creates the database tables (you will see a list of `Applying ... OK`). `seed_activities` loads the teaching content. **Do not skip it: without it the site has no activities.** It should print `Seeded 16 question types, 6 topics, 48 new activities, 0 updated activities.`
+`migrate` creates the database tables (you will see a list of `Applying ... OK`). `seed_activities` loads the teaching content. **Do not skip it: without it the site has no activities.** It should print `Seeded 16 question types, 6 topics, 109 new activities, 0 updated activities.`
 
 Recommended: run the project's test suite on the VM to confirm everything works on this machine.
 

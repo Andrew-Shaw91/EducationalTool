@@ -14,6 +14,15 @@
 <h1 class="h2 mb-3">{{ activity.title }}</h1>
 <p class="lead">{{ activity.stem }}</p>
 
+{% if progress %}
+    {% if progress.completed %}
+    <p class="muted small">You have completed {{ activity.topic.name }}, so this is free practice and will not change your progress.</p>
+    {% elif off_level %}
+    <p class="muted small">This activity is Level {{ activity.bloom_level }}; your level in {{ activity.topic.name }} is {{ progress.level }}. You are welcome to try it, but it will not count towards moving up or down.</p>
+    {% endif %}
+    {% include "practice/_progress.html" with compact=True %}
+{% endif %}
+
 {% if activity.requirements_text %}
 <div class="requirements mb-4">
     <strong>Requirements to communicate</strong>

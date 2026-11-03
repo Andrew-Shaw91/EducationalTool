@@ -390,7 +390,7 @@ class FeedbackServiceTests(SeededTestCase):
         self.assertEqual(len(result.concepts_missing), 3)
 
     def test_whole_word_matching(self):
-        prompt = self.by_type("prompt-construction")
+        prompt = self.by_title("vowel counter")
         service = KeywordFeedbackService()
         self.assertEqual(service.evaluate(prompt, "many symbols, entirely irrelevant").score, 0.0)
         strong = (

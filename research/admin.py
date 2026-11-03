@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Attempt, Participant
+from .models import Attempt, LearnerProgress, Participant, ProgressionEvent
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -30,3 +30,26 @@ class AttemptAdmin(ReadOnlyAdmin):
         "created_at",
     )
     list_filter = ("activity__question_type", "is_correct", "feedback_service")
+
+
+@admin.register(LearnerProgress)
+class LearnerProgressAdmin(ReadOnlyAdmin):
+    list_display = (
+        "participant",
+        "topic",
+        "level",
+        "consecutive_successes",
+        "consecutive_failures",
+        "total_promotions",
+        "total_demotions",
+        "in_remediation",
+        "completed",
+        "updated_at",
+    )
+    list_filter = ("topic", "level", "in_remediation", "completed")
+
+
+@admin.register(ProgressionEvent)
+class ProgressionEventAdmin(ReadOnlyAdmin):
+    list_display = ("participant", "kind", "level_before", "level_after", "activity", "created_at")
+    list_filter = ("kind",)

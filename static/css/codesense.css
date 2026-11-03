@@ -256,6 +256,31 @@ a {
     border-color: #c5d3e0;
 }
 
+/* Adaptive progression */
+.level-name {
+    margin-left: 0.4rem;
+    font-size: 1.1rem;
+}
+
+.progress-card .progress {
+    height: 0.6rem;
+    background: #e9e2d4;
+}
+
+.progress-card .progress-bar {
+    background: var(--teal);
+}
+
+.level-up {
+    background: #e7f3ea;
+    border-color: #b7d8bf;
+}
+
+.level-down {
+    background: #f3e9d9;
+    border-color: #e0cda8;
+}
+
 .skip-link:focus {
     position: absolute;
     left: 1rem;

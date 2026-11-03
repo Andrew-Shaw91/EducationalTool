@@ -1,0 +1,40 @@
+{# Adaptive progress in ONE topic. Needs `progress` (practice.progression.ProgressView). Set compact=True for a short version. #}
+{% if progress %}
+<section class="card card-quiet progress-card mb-4" aria-label="Your level in {{ progress.topic_name }}">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <div>
+                <span class="kicker">{{ progress.topic_name }} &middot; your level</span>
+                <strong class="level-name">Level {{ progress.level }} &middot; {{ progress.label }}</strong>
+            </div>
+            {% if progress.completed %}<span class="chip chip-shape">&#10003; Topic completed</span>
+            {% elif progress.in_remediation %}<span class="chip chip-missing">Building back up</span>{% endif %}
+        </div>
+
+        {% if progress.completed %}
+        <p class="mb-0 small">You have shown mastery at every level of {{ progress.topic_name }}. You can keep practising it, but it will no longer change your progress.</p>
+        {% else %}
+        <div class="progress mb-2" role="progressbar" aria-label="Successful activities in a row"
+             aria-valuenow="{{ progress.successes }}" aria-valuemin="0" aria-valuemax="{{ progress.successes_needed }}">
+            <div class="progress-bar" style="width: {{ progress.success_percent }}%"></div>
+        </div>
+        <p class="mb-1 small">
+            <strong>{{ progress.successes }} / {{ progress.successes_needed }}</strong>
+            successful activities in a row
+            {% if progress.at_top %}to complete {{ progress.topic_name }}.
+            {% else %}to reach Level {{ progress.level|add:1 }} ({{ progress.next_label }}).{% endif %}
+        </p>
+
+        {% if not compact %}
+            {% if progress.in_remediation %}
+            <p class="mb-1 small muted">You stepped back to revisit this level. A single correct answer is not enough to move up again: aim for {{ progress.successes_needed }} in a row.</p>
+            {% endif %}
+            {% if progress.failures_allowed and not progress.at_bottom %}
+            <p class="mb-0 small muted">{{ progress.failures }} / {{ progress.failures_allowed }} missed in a row before stepping back a level. A correct answer resets this.</p>
+            {% endif %}
+            <p class="mb-0 small muted">A miss keeps you on this topic and level with a different activity.</p>
+        {% endif %}
+        {% endif %}
+    </div>
+</section>
+{% endif %}
